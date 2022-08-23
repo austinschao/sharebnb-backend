@@ -28,3 +28,17 @@ CREATE TABLE listings (
     pets_allowed BOOLEAN DEFAULT FALSE
 )
 
+CREATE TABLE listing_availabilities (
+    id SERIAL PRIMARY KEY,
+    listing_id INTEGER REFERENCES listings,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+)
+
+CREATE TABLE messages (
+    from_user VARCHAR(30) REFERENCES users ON DELETE CASCADE,
+    to_user VARCHAR(30) REFERENCES users ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    time_sent TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY(from_user, to_user)
+)
