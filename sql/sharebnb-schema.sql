@@ -14,17 +14,7 @@ CREATE TABLE listings (
     max_occupancy INTEGER NOT NULL,
     price INTEGER CHECK (price >= 0),
     zip_code VARCHAR(10) NOT NULL,
-    owner VARCHAR(30) REFERENCES users ON DELETE CASCADE,
-    swimming_pool BOOLEAN DEFAULT FALSE,
-    jacuzzi BOOLEAN DEFAULT FALSE,
-    outdoor_cinema BOOLEAN DEFAULT FALSE,
-    barbecue_grill BOOLEAN DEFAULT FALSE,
-    basketball_court BOOLEAN DEFAULT FALSE,
-    tennis_court BOOLEAN DEFAULT FALSE,
-    volleyball_court BOOLEAN DEFAULT FALSE,
-    mini_golf BOOLEAN DEFAULT FALSE,
-    pool_table BOOLEAN DEFAULT FALSE,
-    pets_allowed BOOLEAN DEFAULT FALSE
+    owner VARCHAR(30) REFERENCES users ON DELETE CASCADE
 );
 
 CREATE TABLE listing_availabilities (

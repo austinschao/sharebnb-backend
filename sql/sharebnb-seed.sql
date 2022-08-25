@@ -14,20 +14,16 @@ VALUES ('testuser1',
     'testuser2@test.com',
     '94605');
 
-INSERT INTO listings (name, description, max_occupancy, price, zip_code, owner, swimming_pool, pets_allowed)
+INSERT INTO listings (name, description, max_occupancy, price, zip_code, owner)
 VALUES ('Test1''s backyard pool!',
         'A large backyard with a large swimming pool!',
         25,
         300,
         '94601',
-        'testuser1',
-        TRUE,
-        TRUE),
+        'testuser1'),
         ('Test2''s backyard pool!',
          'A small backyard with a small swimming pool!',
         25,
         200,
         '94605',
-        'testuser2',
-        TRUE,
-        TRUE);
+        'testuser2');
