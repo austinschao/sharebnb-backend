@@ -9,7 +9,8 @@ const { NotFoundError } = require("./expressError");
 
 const app = express();
 
-
+app.use(cors());
+app.use(express.json());
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
