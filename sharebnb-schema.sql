@@ -1,12 +1,11 @@
 CREATE TABLE users (
-    username VARCHAR(30) PRIMARY,
+    username VARCHAR(30) PRIMARY KEY,
     password TEXT NOT NULL,
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
-    date_of_birth DATE NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     zip_code VARCHAR(10) NOT NULL
-)
+);
 
 CREATE TABLE listings (
     id SERIAL PRIMARY KEY,
@@ -26,14 +25,14 @@ CREATE TABLE listings (
     mini_golf BOOLEAN DEFAULT FALSE,
     pool_table BOOLEAN DEFAULT FALSE,
     pets_allowed BOOLEAN DEFAULT FALSE
-)
+);
 
 CREATE TABLE listing_availabilities (
     id SERIAL PRIMARY KEY,
     listing_id INTEGER REFERENCES listings,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-)
+    end_date DATE NOT NULL
+);
 
 CREATE TABLE messages (
     from_user VARCHAR(30) REFERENCES users ON DELETE CASCADE,
@@ -41,4 +40,4 @@ CREATE TABLE messages (
     message TEXT NOT NULL,
     time_sent TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY(from_user, to_user)
-)
+);
