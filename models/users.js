@@ -33,10 +33,10 @@ class User {
         return user;
       }
     }
-    throw new UnauthorizedError("Invalid username/password");
+    throw new UnauthorizedError("Invalid username/password.");
   }
 
-  /** Register a new user
+  /** Register a new user.
    *  Returns {username, first_name, last_name, email, zip_code}.
    *  Throws BadRequestError on duplicates.
    */
@@ -48,14 +48,69 @@ class User {
       [username]
     );
     if (duplicateCheck.rows[0]) {
-      throw new BadRequestError(`Duplicate username: ${username}`);
+      throw new BadRequestError(`Duplicate username: ${username}.`);
     }
     const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
     const result = await db.query(
       `INSERT INTO users (username, password, first_name, last_name, email, zip_code)
-      VALUES ($1, $2, $3, $4, $5, $6)`,
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING username, first_name, last_name, email, zip_code`,
       [username, hashedPassword, firstName, lastName, email, zipCode]
     );
+    return result.rows[0];
+  }
 
+  /** Given a username, return data about a user.
+   *  Returns {username, first_name, last_name, email, zip_code}.
+   *  Throws NotFoundError if user is not found.
+  */
+  static async get(username) {
+    const user = await db.query(
+      `SELECT username, first_name, last_name, email, zip_code
+        FROM users
+        WHERE username = $1`,
+      [username]
+    );
+    if (user.result.rows[0] === undefined) throw new NotFoundError("Username not found.");
+    return user.result.rows[0];
+  }
+
+  /** Update a user's profile, return the updated data about the user.
+   *  Returns {username, first_name, last_name, email, zip_code}.
+   *  Throws NotFoundError if given user is not found.
+   */
+  static async update(username, data) {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
+    }
+
+    const result = await db.query(
+      `UPDATE users
+      SET first_name = $1
+          last_name = $2
+          password = $3
+          email = $4
+          zip_code = $5
+      WHERE username = $6
+      RETURNING username, first_name, last_name, email, zip_code`,
+      [data.firstName, data.lastName, data.password, data.email, data.zipCode, username]
+    );
+    const user = result.rows[0];
+    if (!user) throw new NotFoundError(`No user: ${username}`);
+    return user;
+  }
+
+  /** Delete given user from database, returns undefined. */
+  static async remove(username) {
+    const result = await db.query(
+      `DELETE FROM users
+        WHERE username = $1
+        RETURNING username`,
+      [username]
+    );
+    const user = result.rows[0];
+    if (!user) throw new NotFoundError(`No user: ${username}`);
   }
 }
+
+module.exports = User;
