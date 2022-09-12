@@ -7,10 +7,17 @@ const cors = require("cors");
 
 const { NotFoundError } = require("./expressError");
 
+const userRoutes = require("./routes/users");
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+/** Routes */
+app.use("/users", userRoutes);
+
+
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
@@ -27,3 +34,5 @@ app.use(function (err, req, res, next) {
     error: { message, status },
   });
 });
+
+module.exports = app;

@@ -2,6 +2,7 @@
 
 const db = require("../db");
 const bcrypt = require("bcrypt");
+const { sqlForPartialUpdate } = require("../helpers/sql");
 
 const {
   NotFoundError,
@@ -60,6 +61,20 @@ class User {
     return result.rows[0];
   }
 
+  /**
+   * Gets all users
+   * Returns [{user}, {user}, ...]
+   */
+  static async getAll() {
+    const results = await db.query(
+      `SELECT username, first_name, last_name, email, zip_code
+        FROM users`
+    );
+    if (results.rows.lnegth === 0) throw new NotFoundError("No users found");
+    const users = results.rows;
+    return users;
+  }
+
   /** Given a username, return data about a user.
    *  Returns {username, first_name, last_name, email, zip_code}.
    *  Throws NotFoundError if user is not found.
@@ -84,16 +99,21 @@ class User {
       data.password = await bcrypt.hash(data.password, BCRYPT_WORK_FACTOR);
     }
 
+    const jsToSql = {
+      firstName: 'first_name',
+      lastName: 'last_name',
+      zipCode: 'zip_code'
+    };
+
+    const { cols, vals } = sqlForPartialUpdate(data, jsToSql);
+    const usernameIdx = cols.length + 1;
+
     const result = await db.query(
       `UPDATE users
-      SET first_name = $1
-          last_name = $2
-          password = $3
-          email = $4
-          zip_code = $5
-      WHERE username = $6
+      SET ${cols}
+      WHERE username = $${usernameIdx}
       RETURNING username, first_name, last_name, email, zip_code`,
-      [data.firstName, data.lastName, data.password, data.email, data.zipCode, username]
+      [...vals, username]
     );
     const user = result.rows[0];
     if (!user) throw new NotFoundError(`No user: ${username}`);
