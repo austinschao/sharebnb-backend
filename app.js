@@ -8,6 +8,7 @@ const cors = require("cors");
 const { NotFoundError } = require("./expressError");
 
 const userRoutes = require("./routes/users");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 /** Routes */
+app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
 
