@@ -8,7 +8,6 @@ const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const userAuthSchema = require("../schemas/userAuth.json");
 const userRegisterSchema = require("../schemas/userRegister.json");
-const { json } = require("express");
 
 /** POST /auth/token: { username, password } => { token }
  *
