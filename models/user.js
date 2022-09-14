@@ -22,7 +22,7 @@ class User {
   */
   static async authenticate(username, password) {
     const result = await db.query(
-      `SELECT username, password, first_name,  last_name, email, zip_code
+      `SELECT username, password, first_name AS "firstName",  last_name AS "lastName", email, zip_code AS "zipCode"
         FROM users
         WHERE username = $1`,
       [username]
