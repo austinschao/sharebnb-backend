@@ -1,6 +1,8 @@
 "use strict";
 
 const db = require("../db");
+const { sqlForPartialUpdate } = require("../helpers/sql");
+
 const {
   NotFoundError,
   BadRequestError,
@@ -16,11 +18,13 @@ class Listing {
    *  Returns { name, max_occupancy, price, zip_code, owner }.
    */
   static async register({ name, description, max_occupancy, price, zipCode, owner }) {
+    // duplicate check for registering the same listing???
     const result = await db.query(
       `INSERT INTO listing (name, description, max_occupancy, price, zip_code, owner)
       VALUES ($1, $2, $3, $4, $5, $6)`,
       [name, description, max_occupancy, price, zipCode, owner]
     );
+    return result.rows[0];
   }
 
   /**  Get a listing based on its id
@@ -47,19 +51,52 @@ class Listing {
    *
    *  Throw NotFoundError if given id is not found.
   */
-  static async update(id, data) {
+  static async update(listingId, ownerId, data) {
+    const checkOwner = await db.query(
+      `SELECT *
+        FROM listing
+        WHERE owner = $1
+        AND id = $2`,
+      [ownerId, listingId]
+    );
+
+    if (checkOwner.rows.length === 0) {
+      throw new UnauthorizedError("Invalid listing or owner id.");
+    }
+
+    const jsToSql = {
+      maxOccupancy: "max_occupancy",
+      zipCode: "zip_code"
+    };
+
+    const { cols, vals } = sqlForPartialUpdate(data, jsToSql);
+    const listingIdx = cols.length + 1;
+    const ownerIdx = cols.length + 2;
+
     const result = await db.query(
       `UPDATE listing
-        SET name = $1
-            description = $2
-            max_occupancy = $3
-            price = $4
-            zip_code = $5
-        WHERE id = $6
+        SET ${cols}
+        WHERE id = $${listingIdx}
+        AND owner = $${ownerIdx}
         RETURNING *`,
-      [data.name, data.description, data.maxOccupancy, data.price, data.zipCode, id]
+      [...vals, listingIdx, ownerIdx]
     );
-    if (!result.rows[0]) throw new NotFoundError(`Listing not found with id: ${id}`);
-    return result.rows[0];
+    const listing = result.rows[0];
+    if (!listing) throw new NotFoundError(`Listing not found with id: ${id}`);
+    return listing;
+  }
+
+  /** Delete given listing from database, returns undefined */
+  static async remove(listingId, ownerId) {
+    const result = await db.query(
+      `DELETE FROM listings
+        WHERE id = $1
+        AND owner = $2`,
+      [listingId, ownerId]
+    );
+    const listing = result.rows[0];
+    if (!listing) throw new NotFoundError('No listing with the given information.');
   }
 }
+
+module.exports = Listing;
