@@ -55,7 +55,7 @@ class User {
     const result = await db.query(
       `INSERT INTO users (username, password, first_name, last_name, email, zip_code)
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING username, first_name, last_name, email, zip_code`,
+      RETURNING username, first_name AS "firstName", last_name AS "lastName", email, zip_code AS "zipCode"`,
       [username, hashedPassword, firstName, lastName, email, zipCode]
     );
     return result.rows[0];
@@ -67,7 +67,7 @@ class User {
    */
   static async getAll() {
     const results = await db.query(
-      `SELECT username, first_name, last_name, email, zip_code
+      `SELECT username, first_name AS "firstName", last_name AS "lastName", email, zip_code AS "zipCode"
         FROM users`
     );
     if (results.rows.lnegth === 0) throw new NotFoundError("No users found");
@@ -80,14 +80,15 @@ class User {
    *  Throws NotFoundError if user is not found.
   */
   static async get(username) {
-    const user = await db.query(
-      `SELECT username, first_name, last_name, email, zip_code
+    const result = await db.query(
+      `SELECT username, first_name AS "firstName", last_name AS "lastName", email, zip_code AS "zipCode"
         FROM users
         WHERE username = $1`,
       [username]
     );
-    if (user.result.rows[0] === undefined) throw new NotFoundError("Username not found.");
-    return user.result.rows[0];
+    const user = result.rows[0];
+    if (user === undefined) throw new NotFoundError("Username not found.");
+    return user;
   }
 
   /** Update a user's profile, return the updated data about the user.
@@ -105,15 +106,15 @@ class User {
       zipCode: 'zip_code'
     };
 
-    const { cols, vals } = sqlForPartialUpdate(data, jsToSql);
-    const usernameIdx = cols.length + 1;
+    const { setCols, values } = sqlForPartialUpdate(data, jsToSql);
+    const usernameIdx = values.length + 1;
 
     const result = await db.query(
       `UPDATE users
-      SET ${cols}
+      SET ${setCols}
       WHERE username = $${usernameIdx}
-      RETURNING username, first_name, last_name, email, zip_code`,
-      [...vals, username]
+      RETURNING username, first_name AS "firstName", last_name AS "lastName", email, zip_code AS "zipCode"`,
+      [...values, username]
     );
     const user = result.rows[0];
     if (!user) throw new NotFoundError(`No user: ${username}`);
